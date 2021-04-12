@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     2021-4-1.0
+// @version     202104-1.0
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
