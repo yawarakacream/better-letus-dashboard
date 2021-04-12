@@ -247,10 +247,23 @@
    * main
    */
   (async () => {
-    // LETUS の jQuery の読み込みを待機
+    /*
+     * LETUS の jQuery の読み込みを待機
+     */
     await wait(() => "$" in window);
+    console.log($(`button:contains("このページをカスタマイズする")`))
+    /*
+     * 安全装置
+     * 
+     * https://letus.ed.tus.ac.jp/my/ と完全一致する場合のみ実行
+     * LETUS 側のカスタマイズ機能使用中は動作しない
+     */
+    if (location.href !== "https://letus.ed.tus.ac.jp/my/" || $(`button:contains("このページをカスタマイズする")`).length === 0)
+      return;
     
-    // 実行
+    /*
+     * 実行
+     */
     if (enableTimetable)
       addTimetable();
     if (enableTimelineBlockModifier)
