@@ -26,7 +26,7 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 ![スクリーンショット 2021-04-12 14 22 15](https://user-images.githubusercontent.com/70136871/114344279-7da27600-9b9a-11eb-8f31-d6fcc7403bc1.png)
 5. [main.js](https://github.com/yawarakacream/Better-LETUS-Dashboard/blob/main/main.js) を貼り付ける (元の 1 ~ 10 行はいらない)  
 ![スクリーンショット 2021-04-12 14 23 34](https://user-images.githubusercontent.com/70136871/114344378-ad517e00-9b9a-11eb-90f6-5955e12fe712.png)
-
+6. 13 行目以降の各種設定を自分の時間割等に合わせて変更する
 
 ## 注意事項
 
