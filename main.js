@@ -108,7 +108,7 @@
       let day = undefined;
       if (1 <= nowDate.getDay() && nowDate.getDay() <= 5)
         day = days[nowDate.getDay() - 1];
-      let period = periods.findIndex(p => nowMinutes <= calcMinutes(...p.end));
+      let period = periods.findIndex(p => nowMinutes < calcMinutes(...p.end));
       period = period === -1 ? undefined : period;
       const status = calcMinutes(...periods[period].begin) <= nowMinutes ? "running" : "waiting";
       return { day, period, status };
