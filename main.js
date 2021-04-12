@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     202104-1.0
+// @version     202104-1.0.1
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -97,7 +97,7 @@
         day = days[nowDate.getDay() - 1];
       let period = periods.findIndex(p => nowMinutes < calcMinutes(...p.end));
       period = period === -1 ? undefined : period;
-      const status = calcMinutes(...periods[period].begin) <= nowMinutes ? "running" : "waiting";
+      const status = period === undefined ? "finished" : calcMinutes(...periods[period].begin) <= nowMinutes ? "running" : "waiting";
       return { day, period, status };
     })();
 
@@ -108,7 +108,6 @@
           width: 100%;
           table-layout: fixed;
         }
-
         .letusbd-table-c-day {
           min-width: calc((10vw - 64px) / ${Object.values(daysDisplay).filter(d => d).length});
           text-align: center;
@@ -150,7 +149,6 @@
           background-color: white;
         }
       </style>
-
       <div class="card-text mt-3">
         <div class="block-overview block-cards">
           <table class="letusbd-table" rules="all">
@@ -169,7 +167,6 @@
                 </td>
               `).join("")}
             </tr>
-
             ${[...new Array(periodRange.last - periodRange.first + 1).keys()]
               .map(i => i + periodRange.first).map(p => `
                 <tr>
