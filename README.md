@@ -42,6 +42,12 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
   <img width="256px" src="https://user-images.githubusercontent.com/70136871/114415080-54a9d180-9bea-11eb-961f-82b606fb1c57.png">
   
   7. 14 行目以降の各種設定を自分の時間割等に合わせて変更する
+  
+  8. 下部の「変更を保存する」を選択
+  
+  9. ダッシュボードに戻るので、左上の「このページのカスタマイズを終了する」を選択
+  
+  ＊ 「カスタマイズを終了する」の後 https://letus.ed.tus.ac.jp/my/index.php にリダイレクトするが、ここでは本スクリプトは動作しないので、自分で https://letus.ed.tus.ac.jp/my/ に移動する
 </details>
 
 ### Violentmonkey
