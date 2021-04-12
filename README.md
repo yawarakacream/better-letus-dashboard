@@ -34,3 +34,4 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 
 * https://letus.ed.tus.ac.jp/my/ と完全一致する場合のみ実行  
 * LETUS 側のカスタマイズ機能使用中は動作しない
+* 利用は自己責任です
