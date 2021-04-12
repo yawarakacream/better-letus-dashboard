@@ -62,6 +62,7 @@
       }
     }, 10);
   });
+  
   const to2DigitString = n => n < 10 ? "0" + `${n}` : `${n}`;
   const toStringTime = (hours, minutes) => to2DigitString(hours) + ":" + to2DigitString(minutes);
   
@@ -69,9 +70,7 @@
    * 時間割を追加する
    */
   const addTimetable = async () => {
-    /*
-     * 定数
-     */
+    // 定数
     const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     const periods = [
       { begin: [8, 50], end: [10, 20] },
@@ -83,23 +82,11 @@
       { begin: [19, 40], end: [21, 10] },
     ];
 
-    /*
-     * コース名取得
-     */
+    // 各種データを取っておく
     const targetUrlPrefix = "https://letus.ed.tus.ac.jp/course/view.php?id=";
     const courseId2Name = new Map(Array.from($("#block-region-side-pre ul a"))
       .filter(el => el.href.startsWith(targetUrlPrefix))
       .map(el => [+el.href.slice(targetUrlPrefix.length), el.textContent]));
-
-    /*
-     * 描画
-     */
-    const createElement = (tag, className) => {
-      const el = document.createElement(tag);
-      if (className)
-        el.className = className;
-      return el;
-    };
 
     const nowTime = (() => {
       const calcMinutes = (hour, minute) => hour * 60 + minute;
@@ -114,6 +101,7 @@
       return { day, period, status };
     })();
 
+    // 描画
     const createWeeklyTimetable = () => `
       <style>
         .letusbd-table {
@@ -219,6 +207,9 @@
     `);
   };
   
+  /**
+   * タイムラインブロックを操作する
+   */
   const modifyTimelineBlock = async () => {
     // 安全のため，対応するタイムラインブロックは 1 つだけにする
     const $1 = args => {
@@ -247,17 +238,12 @@
    * main
    */
   (async () => {
-    /*
-     * LETUS の jQuery の読み込みを待機
-     */
+    // LETUS の jQuery の読み込みを待機
     await wait(() => "$" in window);
     
-    /*
-     * 安全装置
-     * 
-     * https://letus.ed.tus.ac.jp/my/ と完全一致する場合のみ実行
-     * LETUS 側のカスタマイズ機能使用中は動作しない
-     */
+    // 安全装置
+    // https://letus.ed.tus.ac.jp/my/ と完全一致する場合のみ実行
+    // LETUS 側のカスタマイズ機能使用中は動作しない
     if (location.href !== "https://letus.ed.tus.ac.jp/my/" || $(`button:contains("このページをカスタマイズする")`).length !== 1)
       return;
     
