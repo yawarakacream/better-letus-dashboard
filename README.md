@@ -20,7 +20,10 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 
 ## 導入方法
 
-### HTML ブロック (推奨) v202104-1.1 ~
+HTML ブロック の方を推奨  
+この方法だと携帯版でも動作する
+
+### HTML ブロック (v202104-1.1 ~)
 <details>
   <summary>スポイラー</summary>
   
@@ -35,10 +38,11 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
   <img width="256px" src="https://user-images.githubusercontent.com/70136871/114413827-4ad39e80-9be9-11eb-8bde-cbd20b9b1a0c.png">
   
   5. 「HTMLブロックタイトル」「コンテンツ」を以下のように書く  
-  <b>「コンテンツ」の \</\> 部分を必ず押す。</b>元々「\<p dir="ltr" style="text-align: left;"\>\<br\>\</p\>」などと書かれているので、これは消す
+  <b>「コンテンツ」の \</\> 部分を必ず押す。</b>  
+  元々「\<p dir="ltr" style="text-align: left;"\>\<br\>\</p\>」などと書かれているので、これは消す
   <img width="256px" src="https://user-images.githubusercontent.com/70136871/114414450-c897aa00-9be9-11eb-8b03-f0c13e8eb180.png">
   
-  6. <script> と </script> の間に [main.js](https://github.com/yawarakacream/Better-LETUS-Dashboard/blob/main/main.js) を貼り付ける  
+  6. <script> と </script> の間に <a href="https://github.com/yawarakacream/Better-LETUS-Dashboard/blob/main/main.js">main.js</a> を貼り付ける  
   <img width="256px" src="https://user-images.githubusercontent.com/70136871/114415080-54a9d180-9bea-11eb-961f-82b606fb1c57.png">
   
   7. 14 行目以降の各種設定を自分の時間割等に合わせて変更する
