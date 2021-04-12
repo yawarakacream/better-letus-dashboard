@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     202104-1.0.1
+// @version     202104-1.1
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -103,7 +103,7 @@
 
     // 描画
     const createWeeklyTimetable = () => `
-      <style>
+      <${"style"}>
         .letusbd-table {
           width: 100%;
           table-layout: fixed;
@@ -148,7 +148,8 @@
         .letusbd-table-subject[data-highlight="waiting"] {
           background-color: white;
         }
-      </style>
+      </${"style"}>
+
       <div class="card-text mt-3">
         <div class="block-overview block-cards">
           <table class="letusbd-table" rules="all">
