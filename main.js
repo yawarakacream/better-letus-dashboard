@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Better LETUS Dashboard
-// @namespace   Violentmonkey Scripts
+// @namespace   better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
 // @version     202104-1.1
