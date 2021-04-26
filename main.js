@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        Better LETUS Dashboard
-// @namespace   better-letus-dashboard
+// @namespace   Violentmonkey Scripts
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     202104-1.1
+// @version     202104-1.2
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -30,7 +30,7 @@
   // コース ID 一覧．ID は LETUS の https://letus.ed.tus.ac.jp/course/view.php?id= の後の部分．月 1 〜土 7 まで
   const courses = {
     "monday": [142575, 142575, 143058, 143157, 142563, null, null],
-    "tuesday": [129254, null, 142839, 128821, 141647, null, null],
+    "tuesday": [129254, null, 129281, 128821, 141647, null, null],
     "wednesday": [129321, 143062, 129376, null, null, null, null],
     "thursday": [129376, 143157, null, null, null, null, null],
     "friday": [142659, null, null, null, null, null, null],
@@ -54,14 +54,25 @@
   /**
    * Utility
    */
-  const wait = fn => new Promise(resolve => {
+  const log = (type, ...args) => console.log(`[BLD-${type}]`, ...args);
+  
+  const wait = (fn, onErrored) => new Promise(resolve => {
     const t = setInterval(() => {
-      if (fn()) {
+      try {
+        if (fn()) {
+          clearInterval(t);
+          resolve();
+        }
+      }
+      catch (e) {
         clearInterval(t);
-        resolve();
+        if (onErrored)
+          onErrored(e);
       }
     }, 10);
   });
+  
+  const calcMinutes = (hour, minute) => hour * 60 + minute;
   
   const to2DigitString = n => n < 10 ? "0" + `${n}` : `${n}`;
   const toStringTime = (hours, minutes) => to2DigitString(hours) + ":" + to2DigitString(minutes);
@@ -88,121 +99,138 @@
       .filter(el => el.href.startsWith(targetUrlPrefix))
       .map(el => [+el.href.slice(targetUrlPrefix.length), el.textContent]));
 
-    const nowTime = (() => {
-      const calcMinutes = (hour, minute) => hour * 60 + minute;
-      const nowDate = new Date();
-      const nowMinutes = calcMinutes(nowDate.getHours(), nowDate.getMinutes());
-      let day = undefined;
-      if (1 <= nowDate.getDay() && nowDate.getDay() <= 5)
-        day = days[nowDate.getDay() - 1];
-      let period = periods.findIndex(p => nowMinutes < calcMinutes(...p.end));
-      period = period === -1 ? undefined : period;
-      const status = period === undefined ? "finished" : calcMinutes(...periods[period].begin) <= nowMinutes ? "running" : "waiting";
-      return { day, period, status };
-    })();
-
     // 描画
-    const createWeeklyTimetable = () => `
-      <${"style"}>
-        .letusbd-table {
-          width: 100%;
-          table-layout: fixed;
-        }
-        .letusbd-table-c-day {
-          min-width: calc((10vw - 64px) / ${Object.values(daysDisplay).filter(d => d).length});
-          text-align: center;
-          font-weight: bold;
-        }
-        .letusbd-table-c-day[data-highlight="true"] {
-          background-color: white;
-        }
-        .letusbd-table-c-period {
-          width: 64px;
-        }
-        .letusbd-table-r-period {
-          position: relative;
-          height: max(100%, 96px);
-          vertical-align: top;
-        }
-        .letusbd-table-r-period[data-highlight="true"] {
-          background-color: white;
-        }
-        .letusbd-table-r-period-content {
-          position: absolute;
-          height: 100%;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-        .letusbd-table-r-period-content span, b {
-          text-align: center;
-        }
-  
-        .letusbd-table-subject {
-          padding: 4px;
-        }
-        .letusbd-table-subject[data-highlight="running"] {
-          background-color: cornsilk;
-        }
-        .letusbd-table-subject[data-highlight="waiting"] {
-          background-color: white;
-        }
-      </${"style"}>
+    const createWeeklyTimetable = () => {
+      const nowTime = (() => {
+        const nowDate = new Date();
+        const nowMinutes = calcMinutes(nowDate.getHours(), nowDate.getMinutes());
+        const day = 1 <= nowDate.getDay() && nowDate.getDay() <= 5 ? days[nowDate.getDay() - 1] : undefined;
+        let period = periods.findIndex(p => nowMinutes < calcMinutes(...p.end));
+        period = period === -1 ? undefined : period;
+        const status = period === undefined ? "finished" : calcMinutes(...periods[period].begin) <= nowMinutes ? "running" : "waiting";
+        return { day, period, status };
+      })();
+      return `
+        <${"style"}>
+          .letusbd-table {
+            width: 100%;
+            table-layout: fixed;
+          }
+          .letusbd-table-c-day {
+            min-width: calc((10vw - 64px) / ${Object.values(daysDisplay).filter(d => d).length});
+            text-align: center;
+            font-weight: bold;
+          }
+          .letusbd-table-c-day[data-highlight="true"] {
+            background-color: white;
+          }
+          .letusbd-table-c-period {
+            width: 64px;
+          }
+          .letusbd-table-r-period {
+            position: relative;
+            height: max(100%, 96px);
+            vertical-align: top;
+          }
+          .letusbd-table-r-period[data-highlight="true"] {
+            background-color: white;
+          }
+          .letusbd-table-r-period-content {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          }
+          .letusbd-table-r-period-content span, b {
+            text-align: center;
+          }
 
-      <div class="card-text mt-3">
-        <div class="block-overview block-cards">
-          <table class="letusbd-table" rules="all">
-            <tr>
-              <td class="letusbd-table-c-period"></td>
-              ${days.filter(d => daysDisplay[d]).map(d => `
-                <td class="letusbd-table-c-day" data-highlight="${nowTime.day === d}">
-                  ${{
-                    "monday": "月",
-                    "tuesday": "火",
-                    "wednesday": "水",
-                    "thursday": "木",
-                    "friday": "金",
-                    "saturday": "土"
-                    }[d]}
-                </td>
-              `).join("")}
-            </tr>
-            ${[...new Array(periodRange.last - periodRange.first + 1).keys()]
-              .map(i => i + periodRange.first).map(p => `
-                <tr>
-                  <td class="letusbd-table-r-period" data-highlight="${nowTime.period === p}">
-                    <div class="letusbd-table-r-period-content">
-                      <span>${toStringTime(...periods[p].begin)}</span>
-                      <b>${p + 1}</b>
-                      <span>${toStringTime(...periods[p].end)}</span>
-                    </div>
-                  </div>
+          .letusbd-table-subject {
+            padding: 4px;
+          }
+          .letusbd-table-subject[data-highlight="running"] {
+            background-color: cornsilk;
+          }
+          .letusbd-table-subject[data-highlight="waiting"] {
+            background-color: white;
+          }
+        </${"style"}>
+        <div class="card-text mt-3">
+          <div class="block-overview block-cards">
+            <table class="letusbd-table" rules="all">
+              <tr>
+                <td class="letusbd-table-c-period"></td>
+                ${days.filter(d => daysDisplay[d]).map(d => `
+                  <td class="letusbd-table-c-day" data-highlight="${nowTime.day === d}">
+                    ${{
+                      "monday": "月",
+                      "tuesday": "火",
+                      "wednesday": "水",
+                      "thursday": "木",
+                      "friday": "金",
+                      "saturday": "土"
+                      }[d]}
                   </td>
-                    ${days.filter(d => daysDisplay[d]).map(d => `
-                      <td class="letusbd-table-subject" data-highlight="${(nowTime.period === p && nowTime.day === d) && nowTime.status}">
-                        ${!courses[d][p] ? `` : `
-                          <a href=${targetUrlPrefix + courses[d][p]}>
-                            ${courseId2Name.get(courses[d][p])}
-                          </a>
-                        `}
-                      </td>
-                    `).join("")}
-                </tr>
-              `).join("")}
-          </table>
+                `).join("")}
+              </tr>
+              ${[...new Array(periodRange.last - periodRange.first + 1).keys()]
+                .map(i => i + periodRange.first).map(p => `
+                  <tr>
+                    <td class="letusbd-table-r-period" data-highlight="${nowTime.period === p}">
+                      <div class="letusbd-table-r-period-content">
+                        <span>${toStringTime(...periods[p].begin)}</span>
+                        <b>${p + 1}</b>
+                        <span>${toStringTime(...periods[p].end)}</span>
+                      </div>
+                    </div>
+                    </td>
+                      ${days.filter(d => daysDisplay[d]).map(d => `
+                        <td class="letusbd-table-subject" data-highlight="${(nowTime.period === p && nowTime.day === d) && nowTime.status}">
+                          ${!courses[d][p] ? `` : `
+                            <a href=${targetUrlPrefix + courses[d][p]}>
+                              ${courseId2Name.get(courses[d][p])}
+                            </a>
+                          `}
+                        </td>
+                      `).join("")}
+                  </tr>
+                `).join("")}
+            </table>
+          </div>
         </div>
-      </div>
-    `;
+      `
+    };
 
-    $("#block-region-content").prepend(`
-      <section class="block_myoverview block card mb-3">
+    const root = $("#block-region-content");
+    const container = $(`<section class="block_myoverview block card mb-3">`);
+    root.prepend(container);
+    
+    const render = () => {
+      log("Timetable", `rendering...`);
+      container.html(`
         <div class="card-body p-3">
           <h5 class="card-title d-inline">時間割</h5>
           ${createWeeklyTimetable()}
         </div>
-      </section>
-    `);
+      `);
+      log("Timetable", `rendered: ${new Date().toISOString()}`);
+    };
+    render();
+    const loadInterval = 10 * 60 * 1000;
+    setTimeout(() => {
+      render();
+      const t = setInterval(() => {
+        try {
+          render();
+        }
+        catch (e) {
+          clearInterval(t);
+          log("Timetable", "Rendering errored:", e);
+        }
+      }, loadInterval);
+    }, Math.ceil(Date.now() / loadInterval) * loadInterval - Date.now());
   };
   
   /**
@@ -214,6 +242,12 @@
       const ret = $(args);
       return ret.length === 1 ? $(ret[0]) : undefined;
     };
+    
+    if (!$1(`div[data-region="event-list-loading-placeholder"]`)) {
+      log("TimelineBlockModifier", "Timeline-Block is not found.");
+      return;
+    }
+    
     const waitForLoading = async time => {
       await wait(() => $1(`div[data-region="event-list-loading-placeholder"]`).attr("class") === "hidden");
       if (time)
@@ -236,22 +270,57 @@
    * main
    */
   (async () => {
+    const created = { year: 2021, month: 4 };
+    const version = "1.2";
+    const fullVersion = `v${created.year}${to2DigitString(created.month)}-${version}`;
+    log("Main", `Better LETUS Dashboard ${fullVersion}`);
+    
+    // 年度を跨いでいたら終了
+    const now = new Date();
+    if (!(now.getFullYear() === created.year || (now.getFullYear() === created.year + 1 && now.getMonth() < 3))) {
+      log("Main", `Stopped: ${fullVersion} has expired`);
+      return;
+    }
+      
     // LETUS の jQuery の読み込みを待機
     await wait(() => "$" in window);
+    log("Main", "jQuery has been loaded.");
     
     // 安全装置
     // * https://letus.ed.tus.ac.jp/my/ と完全一致する場合のみ実行
     // * LETUS 側のカスタマイズ機能使用中は動作しない
-    if (location.href !== "https://letus.ed.tus.ac.jp/my/" || $(`button:contains("このページをカスタマイズする")`).length !== 1)
+    if (location.href !== "https://letus.ed.tus.ac.jp/my/") {
+      log("Main", "Stopped: Illegal location.href!");
       return;
+    }
+    if ($(`button:contains("このページをカスタマイズする")`).length !== 1) {
+      log("Main", "Stopped: LETUS is now customize mode!");
+      return;
+    }
     
     /*
      * 実行
      */
-    if (enableTimetable)
-      addTimetable();
-    if (enableTimelineBlockModifier)
-      modifyTimelineBlock();
+    if (enableTimetable) {
+      try {
+        log("Timetable", "loading...")
+        addTimetable();
+        log("Timetable", "successfully loaded.")
+      }
+      catch (e) {
+        log("Timetable", "Errored:", e);
+      }
+    }
+    if (enableTimelineBlockModifier) {
+      try {
+        log("TimelineBlockModifier", "loading...")
+        modifyTimelineBlock();
+        log("TimelineBlockModifier", "successfully loaded.")
+      }
+      catch (e) {
+        log("TimelineBlockModifier", "Errored:", e);
+      }
+    }
   })();
   
 })();
