@@ -303,9 +303,9 @@
      */
     if (enableTimetable) {
       try {
-        log("Timetable", "loading...")
+        log("Timetable", "loading...");
         addTimetable();
-        log("Timetable", "successfully loaded.")
+        log("Timetable", "successfully loaded.");
       }
       catch (e) {
         log("Timetable", "Errored:", e);
@@ -313,9 +313,9 @@
     }
     if (enableTimelineBlockModifier) {
       try {
-        log("TimelineBlockModifier", "loading...")
+        log("TimelineBlockModifier", "loading...");
         modifyTimelineBlock();
-        log("TimelineBlockModifier", "successfully loaded.")
+        log("TimelineBlockModifier", "successfully loaded.");
       }
       catch (e) {
         log("TimelineBlockModifier", "Errored:", e);
