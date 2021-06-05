@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     202104-1.2
+// @version     202106-1.3
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -129,7 +129,7 @@
           }
           .letusbd-table-r-period {
             position: relative;
-            height: max(100%, 96px);
+            height: max(10vh, 96px);
             vertical-align: top;
           }
           .letusbd-table-r-period[data-highlight="true"] {
