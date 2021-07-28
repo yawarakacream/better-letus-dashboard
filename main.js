@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     202106-1.3
+// @version     202107-1.4
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -46,8 +46,8 @@
   const enableTimelineBlockModifier = true;
   // 表示件数．5, 10, 25 のいずれか
   const displayedSubmissions = 25;
-  // 提出期限．7, 30, 90, 180 のいずれか [日]
-  const submissionLimit = 30;
+  // 提出期限．7, 30, 90, 180 のいずれか [日] または "all" または "overdue"
+  const submissionLimit = "all";
   
   // 処理 ===========================================================
   
@@ -261,6 +261,11 @@
       await waitForLoading(true);
     }
     if (submissionLimit != 7) {
+      if (submissionLimit === "all")
+        $1(`div[class="block-timeline"] .dropdown-item[data-from="-14"][data-filtername="all"]`).click();
+      else if (submissionLimit === "expired")
+        $1(`div[class="block-timeline"] .dropdown-item[data-from="-14"][data-filtername="overdue"]`).click();
+      else
       $1(`div[class="block-timeline"] .dropdown-item[data-to="${submissionLimit}"]`).click();
       await waitForLoading(true);
     }
@@ -270,8 +275,8 @@
    * main
    */
   (async () => {
-    const created = { year: 2021, month: 4 };
-    const version = "1.2";
+    const created = { year: 2021, month: 7 };
+    const version = "1.4";
     const fullVersion = `v${created.year}${to2DigitString(created.month)}-${version}`;
     log("Main", `Better LETUS Dashboard ${fullVersion}`);
     
