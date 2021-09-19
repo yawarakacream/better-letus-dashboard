@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        Better LETUS Dashboard
-// @namespace   Violentmonkey Scripts
+// @namespace   https://github.com/yawarakacream/Better-LETUS-Dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     202107-1.4
+// @version     2.0 (202109)
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -27,15 +27,29 @@
     "friday": true,
     "saturday": false,
   };
+  // デフォルトで表示する学期．first: 前期, second: 後期
+  const defaultSemester = "second";
   // コース ID 一覧．ID は LETUS の https://letus.ed.tus.ac.jp/course/view.php?id= の後の部分．月 1 〜土 7 まで
   const courses = {
-    "monday": [142575, 142575, 143058, 143157, 142563, null, null],
-    "tuesday": [129254, null, 129281, 128821, 141647, null, null],
-    "wednesday": [129321, 143062, 129376, null, null, null, null],
-    "thursday": [129376, 143157, null, null, null, null, null],
-    "friday": [142659, null, null, null, null, null, null],
-    "saturday": [null, null, null, null, null, null, null],
-  };
+    // 前期
+    first: {
+      "monday": [142575, 142575, 143058, 143157, 142563, null, null],
+      "tuesday": [129254, null, 129281, 128821, 141647, null, null],
+      "wednesday": [129321, 143062, 129376, null, null, null, null],
+      "thursday": [129376, 143157, null, null, null, null, null],
+      "friday": [142659, null, null, null, null, null, null],
+      "saturday": [null, null, null, null, null, null, null],
+    },
+    // 後期
+    second:{
+      "monday": [null, null, null, 143630, null, null, null],
+      "tuesday": [null, null, null, null, 129282, null, null],
+      "wednesday": [null, null, null, 142463, null, null, null],
+      "thursday": [null, 143630, null, null, null, null, null],
+      "friday": [null, null, 129371, null, null, null, null],
+      "saturday": [null, null, null, null, null, null, null],
+    },
+  }
   
   /*
    * 「タイムラインブロック」関連
@@ -78,6 +92,11 @@
   const toStringTime = (hours, minutes) => to2DigitString(hours) + ":" + to2DigitString(minutes);
   
   /**
+   * グローバル変数
+   */
+  let semester = defaultSemester;
+  
+  /**
    * 時間割を追加する
    */
   const addTimetable = async () => {
@@ -100,7 +119,7 @@
       .map(el => [+el.href.slice(targetUrlPrefix.length), el.textContent]));
 
     // 描画
-    const createWeeklyTimetable = () => {
+    const createWeeklyTimetable = (onSwitcherClicked) => {
       const nowTime = (() => {
         const nowDate = new Date();
         const nowMinutes = calcMinutes(nowDate.getHours(), nowDate.getMinutes());
@@ -117,7 +136,6 @@
             table-layout: fixed;
           }
           .letusbd-table-c-day {
-            min-width: calc((10vw - 64px) / ${Object.values(daysDisplay).filter(d => d).length});
             text-align: center;
             font-weight: bold;
           }
@@ -125,7 +143,22 @@
             background-color: white;
           }
           .letusbd-table-c-period {
-            width: 64px;
+            margin: 0;
+            padding: 0;
+            width: min(64px, calc(100vw / (${Object.values(daysDisplay).filter(d => d).length}) - 24px));
+          }
+          .letusbd-table-switcher {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+          }
+          #letusbd-table-switcher-button {
+            color: #0f6fc5;
+            cursor: pointer;
           }
           .letusbd-table-r-period {
             position: relative;
@@ -151,7 +184,7 @@
             padding: 4px;
           }
           .letusbd-table-subject[data-highlight="running"] {
-            background-color: cornsilk;
+            background-color: floralwhite;
           }
           .letusbd-table-subject[data-highlight="waiting"] {
             background-color: white;
@@ -161,7 +194,13 @@
           <div class="block-overview block-cards">
             <table class="letusbd-table" rules="all">
               <tr>
-                <td class="letusbd-table-c-period"></td>
+                <td class="letusbd-table-c-period">
+                  <div class="letusbd-table-switcher">
+                    <span id="letusbd-table-switcher-button">
+                      ${{first: "前期", second: "後期"}[semester]}
+                    </span>
+                  </div>
+                </td>
                 ${days.filter(d => daysDisplay[d]).map(d => `
                   <td class="letusbd-table-c-day" data-highlight="${nowTime.day === d}">
                     ${{
@@ -188,9 +227,9 @@
                     </td>
                       ${days.filter(d => daysDisplay[d]).map(d => `
                         <td class="letusbd-table-subject" data-highlight="${(nowTime.period === p && nowTime.day === d) && nowTime.status}">
-                          ${!courses[d][p] ? `` : `
-                            <a href=${targetUrlPrefix + courses[d][p]}>
-                              ${courseId2Name.get(courses[d][p])}
+                          ${!courses[semester][d][p] ? `` : `
+                            <a href=${targetUrlPrefix + courses[semester][d][p]}>
+                              ${courseId2Name.get(courses[semester][d][p])}
                             </a>
                           `}
                         </td>
@@ -212,9 +251,14 @@
       container.html(`
         <div class="card-body p-3">
           <h5 class="card-title d-inline">時間割</h5>
-          ${createWeeklyTimetable()}
+          ${createWeeklyTimetable(render)}
         </div>
       `);
+      document.getElementById("letusbd-table-switcher-button").onclick = () => {
+        semester = semester === "first" ? "second" : "first";
+        render();
+        log("Timetable", `semester switched: ${semester}`);
+      };
       log("Timetable", `rendered: ${new Date().toISOString()}`);
     };
     render();
