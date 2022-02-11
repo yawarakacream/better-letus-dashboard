@@ -1,4 +1,4 @@
-# Better-LETUS-Dashboard
+# Better LETUS Dashboard
 
 LETUS のダッシュボードを改良する User Script
 
