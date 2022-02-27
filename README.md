@@ -1,9 +1,9 @@
-# Better LETUS Dashboard
+# Better LETUS Dashboard 2022
 
 LETUS のダッシュボードを改良する User Script
 
 開発環境  
-Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.12.12
+Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.13.0
 
 ダッシュボード「HTML ブロック」内 <script> にコピペすることでも使用可能
 
@@ -11,11 +11,15 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 
 ### 上部に時間割を追加する
 
-![Screenshot](https://user-images.githubusercontent.com/70136871/114332531-61460f80-9b81-11eb-8fc3-b461adca3f69.png)
+<img width="1097" src="https://user-images.githubusercontent.com/70136871/155876260-b6eed26a-bd7f-4381-a7e1-c173bec6d764.png">
+
+前期・後期を切り替えられる
+
+下部に時間割に載らない集中講義等のショートカットを配置可能
 
 ### 「タイムライン」ブロックの設定を自動的に変更する
 
-デフォルトでは、タイムラインに表示される課題等が 7 日 & 5 個と少ない & 変更しても保存してくれない  
+デフォルトでは、タイムラインに表示される課題等が 7 日 と短い & 変更しても保存してくれない  
 これらの設定をダッシュボードを開いたときに自動的に変更する
 
 ## 導入方法
@@ -23,7 +27,7 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 HTML ブロック の方を推奨  
 この方法だと携帯版でも動作する
 
-### HTML ブロック (v202104-1.1 ~)
+### HTML ブロック
 <details>
   <summary>スポイラー</summary>
   
@@ -38,7 +42,7 @@ HTML ブロック の方を推奨
   <img width="256px" src="https://user-images.githubusercontent.com/70136871/114413827-4ad39e80-9be9-11eb-8bde-cbd20b9b1a0c.png">
   
   5. 「HTMLブロックタイトル」「コンテンツ」を以下のように書く  
-  <b>「コンテンツ」の \</\> 部分を必ず押す。</b>  
+  <b>「コンテンツ」の \</\> 部分を必ず押す！</b>  
   元々「\<p dir="ltr" style="text-align: left;"\>\<br\>\</p\>」などと書かれているので、これは消す
   <img width="256px" src="https://user-images.githubusercontent.com/70136871/114414450-c897aa00-9be9-11eb-8b03-f0c13e8eb180.png">
   
@@ -76,42 +80,21 @@ HTML ブロック の方を推奨
 
 ## 更新履歴
 
-表記方法が定まってないのでよしなに読み替えてください
+### v20220227
 
-LETUS 側のアップデートに備え、作成時期を明記している  
-年度を跨いでの利用は推奨しない
+- 2022 年度用 初版
 
-### 2.0 (202109)
+### 2021 年度用からの変更点
 
-* 時間割を学期で切り替えられるように
-
-### 202107-1.4
-
-* submissionLimit に "all", "expired" を追加
-
-### 202106-1,3
-
-* 時間割の行の高さが低くなってしまうバグを修正（LETUS 側の更新？）
-
-### 202104-1.2
-
-* 時間割のハイライトが時間の経過で更新されるように
-* 安全装置を更新
-* ログを取るように
-
-### 202104-1.1
-
-* タイムラインブロック関連の機能を追加
-
-### 202104-1.0
-
-* 初版
+- タイムラインブロックの表示個数の設定の廃止に伴い、同設定の自動変更機能を削除
+- 時間割にショートカット置き場を追加
 
 ## 注意事項
 
-安全のための制限：
+安全のための制限として、以下の条件をすべてクリアしていなければ動作しない：
 
-* https://letus.ed.tus.ac.jp/my/ と完全一致する場合のみ実行  
-* LETUS 側のカスタマイズ機能使用中は動作しない
+- 年度が合わなければならない
+- location.href が https://letus.ed.tus.ac.jp/my/ と完全一致する
+- LETUS 側のカスタマイズ機能を使用中ではない
 
 利用は自己責任です
