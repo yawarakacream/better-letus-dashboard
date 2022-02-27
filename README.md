@@ -1,4 +1,6 @@
-# Better LETUS Dashboard
+⚠️ 2021 年度用
+
+# Better LETUS Dashboard 2021
 
 LETUS のダッシュボードを改良する User Script
 
@@ -89,7 +91,7 @@ LETUS 側のアップデートに備え、作成時期を明記している
 
 * submissionLimit に "all", "expired" を追加
 
-### 202106-1,3
+### 202106-1.3
 
 * 時間割の行の高さが低くなってしまうバグを修正（LETUS 側の更新？）
 
