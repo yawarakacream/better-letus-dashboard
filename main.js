@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        Better LETUS Dashboard
-// @namespace   https://github.com/yawarakacream/Better-LETUS-Dashboard
+// @name        Better LETUS Dashboard 2022
+// @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     2.0 (202109)
+// @version     20220227
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -16,7 +16,7 @@
    * 時間割関連
    */
   const enableTimetable = true;
-  // 表示する時間の範囲．0-indexed
+  // 表示する時間の範囲．0-indexed (1 限 => 0, 2 限 => 1, ...)
   const periodRange = { first: 0, last: 4 };
   // 表示する曜日
   const daysDisplay = {
@@ -28,49 +28,70 @@
     "saturday": false,
   };
   // デフォルトで表示する学期．first: 前期, second: 後期
-  const defaultSemester = "second";
-  // コース ID 一覧．ID は LETUS の https://letus.ed.tus.ac.jp/course/view.php?id= の後の部分．月 1 〜土 7 まで
-  const courses = {
+  const defaultSemester = "first";
+  // 時間割に載せるコース ID 一覧．ID は LETUS の https://letus.ed.tus.ac.jp/course/view.php?id= の後の部分．月 1 〜土 7 まで
+  const timetableCourses = {
     // 前期
     first: {
-      "monday": [142575, 142575, 143058, 143157, 142563, null, null],
-      "tuesday": [129254, null, 129281, 128821, 141647, null, null],
-      "wednesday": [129321, 143062, 129376, null, null, null, null],
-      "thursday": [129376, 143157, null, null, null, null, null],
-      "friday": [142659, null, null, null, null, null, null],
+      "monday": [null, null, null, null, null, null, null],
+      "tuesday": [null, null, null, null, null, null, null],
+      "wednesday": [null, null, null, null, null, null, null],
+      "thursday": [null, null, null, null, null, null, null],
+      "friday": [null, null, null, null, null, null, null],
       "saturday": [null, null, null, null, null, null, null],
     },
     // 後期
-    second:{
-      "monday": [null, null, null, 143630, null, null, null],
-      "tuesday": [null, null, null, null, 129282, null, null],
-      "wednesday": [null, null, null, 142463, null, null, null],
-      "thursday": [null, 143630, null, null, null, null, null],
-      "friday": [null, null, 129371, null, null, null, null],
+    second: {
+      "monday": [null, null, null, null, null, null, null],
+      "tuesday": [null, null, null, null, null, null, null],
+      "wednesday": [null, null, null, null, null, null, null],
+      "thursday": [null, null, null, null, null, null, null],
+      "friday": [null, null, null, null, null, null, null],
       "saturday": [null, null, null, null, null, null, null],
     },
-  }
+  };
+  // 時間割に載せないコース ID 一覧 (ショートカット)．集中講義や学科情報など．不要な場合は空に．
+  const shortcutCourses = [127161, 11197];
   
   /*
    * 「タイムラインブロック」関連
    * 
-   * displayedSubmissions, submissionLimit は両方弄るとロードが 2 回入るので、どちらか一方だけ変更がいいかもしれない
-   * LETUS の初期値 (<=> ともに最小値) の場合，余計なロードは省略される
+   * LETUS の初期値 (= 最小値) の場合，余計なロードは省略される
    */
   const enableTimelineBlockModifier = true;
-  // 表示件数．5, 10, 25 のいずれか
-  const displayedSubmissions = 25;
   // 提出期限．7, 30, 90, 180 のいずれか [日] または "all" または "overdue"
   const submissionLimit = "all";
   
   // 処理 ===========================================================
   
   /**
+   * 定数
+   */
+  const bldVersion = "20220227";
+  const targetLetusVersion = "2022";
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  
+  const periods = [
+    { begin: [8, 50], end: [10, 20] },
+    { begin: [10, 30], end: [12, 00] },
+    { begin: [12, 50], end: [14, 20] },
+    { begin: [14, 30], end: [16, 00] },
+    { begin: [16, 10], end: [17, 40] },
+    { begin: [18, 00], end: [19, 30] },
+    { begin: [19, 40], end: [21, 10] },
+  ];
+  
+  /**
    * Utility
    */
-  const log = (type, ...args) => console.log(`[BLD-${type}]`, ...args);
+  const mapObject = (object, map) => Object.fromEntries(Object.entries(object).map(([k, v]) => [k, map(k, v)]));
   
-  const wait = (fn, onErrored) => new Promise(resolve => {
+  // info, error
+  const log = mapObject({"info": "log", "error": "error"}, (_, level) => {
+    return (type, ...args) => console[[level]](`[BLD-${type}]`, ...args);
+  });
+  
+  const wait = (fn) => new Promise((resolve, reject) => {
     const t = setInterval(() => {
       try {
         if (fn()) {
@@ -80,55 +101,36 @@
       }
       catch (e) {
         clearInterval(t);
-        if (onErrored)
-          onErrored(e);
+        reject();
       }
     }, 10);
   });
   
-  const calcMinutes = (hour, minute) => hour * 60 + minute;
+  const calcMinutes = (h, m) => h * 60 + m;
   
-  const to2DigitString = n => n < 10 ? "0" + `${n}` : `${n}`;
+  const to2DigitString = (n) => n < 10 ? `0${n}` : `${n}`;
   const toStringTime = (hours, minutes) => to2DigitString(hours) + ":" + to2DigitString(minutes);
-  
-  /**
-   * グローバル変数
-   */
-  let semester = defaultSemester;
   
   /**
    * 時間割を追加する
    */
-  const addTimetable = async () => {
-    // 定数
-    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    const periods = [
-      { begin: [8, 50], end: [10, 20] },
-      { begin: [10, 30], end: [12, 00] },
-      { begin: [12, 50], end: [14, 20] },
-      { begin: [14, 30], end: [16, 00] },
-      { begin: [16, 10], end: [17, 40] },
-      { begin: [18, 00], end: [19, 30] },
-      { begin: [19, 40], end: [21, 10] },
-    ];
-
-    // 各種データを取っておく
-    const targetUrlPrefix = "https://letus.ed.tus.ac.jp/course/view.php?id=";
-    const courseId2Name = new Map(Array.from($("#block-region-side-pre ul a"))
-      .filter(el => el.href.startsWith(targetUrlPrefix))
-      .map(el => [+el.href.slice(targetUrlPrefix.length), el.textContent]));
-
-    // 描画
-    const createWeeklyTimetable = (onSwitcherClicked) => {
-      const nowTime = (() => {
-        const nowDate = new Date();
-        const nowMinutes = calcMinutes(nowDate.getHours(), nowDate.getMinutes());
-        const day = 1 <= nowDate.getDay() && nowDate.getDay() <= 5 ? days[nowDate.getDay() - 1] : undefined;
-        let period = periods.findIndex(p => nowMinutes < calcMinutes(...p.end));
-        period = period === -1 ? undefined : period;
-        const status = period === undefined ? "finished" : calcMinutes(...periods[period].begin) <= nowMinutes ? "running" : "waiting";
-        return { day, period, status };
-      })();
+  const addTimetable = () => {
+    const courseUrlPrefix = "https://letus.ed.tus.ac.jp/course/view.php?id=";
+    const courseIdToName = new Map(Array.from($("#block-region-side-pre ul a"))
+      .filter(el => el.href.startsWith(courseUrlPrefix))
+      .map(el => [+el.href.slice(courseUrlPrefix.length), el.textContent]));
+    
+    const getNowTime = () => {
+      const nowDate = new Date();
+      const nowMinutes = calcMinutes(nowDate.getHours(), nowDate.getMinutes());
+      const day = 1 <= nowDate.getDay() && nowDate.getDay() <= 5 ? days[nowDate.getDay() - 1] : undefined;
+      let period = periods.findIndex(p => nowMinutes < calcMinutes(...p.end));
+      period = period === -1 ? undefined : period;
+      const status = period === undefined ? "finished" : calcMinutes(...periods[period].begin) <= nowMinutes ? "running" : "waiting";
+      return { day, period, status };
+    };
+    const create = (data) => {
+      const { time: { day, period, status }, semester } = data;
       return `
         <${"style"}>
           .letusbd-table {
@@ -159,6 +161,7 @@
           #letusbd-table-switcher-button {
             color: #0f6fc5;
             cursor: pointer;
+            user-select: none;
           }
           .letusbd-table-r-period {
             position: relative;
@@ -179,7 +182,6 @@
           .letusbd-table-r-period-content span, b {
             text-align: center;
           }
-
           .letusbd-table-subject {
             padding: 4px;
           }
@@ -201,8 +203,8 @@
                     </span>
                   </div>
                 </td>
-                ${days.filter(d => daysDisplay[d]).map(d => `
-                  <td class="letusbd-table-c-day" data-highlight="${nowTime.day === d}">
+                ${days.filter((d) => daysDisplay[d]).map((d) => `
+                  <td class="letusbd-table-c-day" data-highlight="${day === d}">
                     ${{
                       "monday": "月",
                       "tuesday": "火",
@@ -215,9 +217,9 @@
                 `).join("")}
               </tr>
               ${[...new Array(periodRange.last - periodRange.first + 1).keys()]
-                .map(i => i + periodRange.first).map(p => `
+                .map((i) => i + periodRange.first).map((p) => `
                   <tr>
-                    <td class="letusbd-table-r-period" data-highlight="${nowTime.period === p}">
+                    <td class="letusbd-table-r-period" data-highlight="${period === p}">
                       <div class="letusbd-table-r-period-content">
                         <span>${toStringTime(...periods[p].begin)}</span>
                         <b>${p + 1}</b>
@@ -225,11 +227,11 @@
                       </div>
                     </div>
                     </td>
-                      ${days.filter(d => daysDisplay[d]).map(d => `
-                        <td class="letusbd-table-subject" data-highlight="${(nowTime.period === p && nowTime.day === d) && nowTime.status}">
-                          ${!courses[semester][d][p] ? `` : `
-                            <a href=${targetUrlPrefix + courses[semester][d][p]}>
-                              ${courseId2Name.get(courses[semester][d][p])}
+                      ${days.filter((d) => daysDisplay[d]).map((d) => `
+                        <td class="letusbd-table-subject" data-highlight="${(period === p && day === d) && status}">
+                          ${!timetableCourses[semester][d][p] ? `` : `
+                            <a href=${courseUrlPrefix + timetableCourses[semester][d][p]}>
+                              ${courseIdToName.get(timetableCourses[semester][d][p])}
                             </a>
                           `}
                         </td>
@@ -238,136 +240,146 @@
                 `).join("")}
             </table>
           </div>
+          ${shortcutCourses.length === 0 ? "" : `
+            <div class="card-text mt-3">
+              ${shortcutCourses.map((id) => `
+                <a href=${courseUrlPrefix + id}>
+                  ${courseIdToName.get(id)}
+                </a>
+              `).join("<br />")}
+            </div>
+          `}
         </div>
-      `
-    };
-
+      `;
+    }
+    
     const root = $("#block-region-content");
     const container = $(`<section class="block_myoverview block card mb-3">`);
     root.prepend(container);
     
+    const data = { semester: defaultSemester, time: getNowTime() };
     const render = () => {
-      log("Timetable", `rendering...`);
+      log.info("Timetable", `rendering...`);
       container.html(`
         <div class="card-body p-3">
           <h5 class="card-title d-inline">時間割</h5>
-          ${createWeeklyTimetable(render)}
+          ${create(data)}
         </div>
       `);
       document.getElementById("letusbd-table-switcher-button").onclick = () => {
-        semester = semester === "first" ? "second" : "first";
+        data.semester = data.semester === "first" ? "second" : "first";
         render();
-        log("Timetable", `semester switched: ${semester}`);
+        log.info("Timetable", `semester switched: ${data.semester}`);
       };
-      log("Timetable", `rendered: ${new Date().toISOString()}`);
+      log.info("Timetable", `rendered: ${new Date().toISOString()}`);
     };
     render();
-    const loadInterval = 10 * 60 * 1000;
-    setTimeout(() => {
-      render();
-      const t = setInterval(() => {
-        try {
-          render();
-        }
-        catch (e) {
-          clearInterval(t);
-          log("Timetable", "Rendering errored:", e);
-        }
-      }, loadInterval);
-    }, Math.ceil(Date.now() / loadInterval) * loadInterval - Date.now());
-  };
+    const t = setInterval(() => {
+      try {
+        render();
+      }
+      catch (e) {
+        clearInterval(t);
+        log.info("Timetable", "Rendering errored:", e);
+      }
+    }, 1000 * 60);
+  }
   
   /**
    * タイムラインブロックを操作する
    */
   const modifyTimelineBlock = async () => {
     // 安全のため，対応するタイムラインブロックは 1 つだけにする
-    const $1 = args => {
+    const $1 = (args) => {
       const ret = $(args);
       return ret.length === 1 ? $(ret[0]) : undefined;
     };
-    
     if (!$1(`div[data-region="event-list-loading-placeholder"]`)) {
       log("TimelineBlockModifier", "Timeline-Block is not found.");
       return;
     }
     
-    const waitForLoading = async time => {
-      await wait(() => $1(`div[data-region="event-list-loading-placeholder"]`).attr("class") === "hidden");
-      if (time)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
     // 適当に待機しないとうまくいかない・・・
+    const waitForLoading = async (time) => {
+      await wait(() => $1(`div[data-region="event-list-loading-placeholder"]`).attr("class") === "hidden");
+      if (time) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
     // イベントを発火させず直接変更することもできるはずだが、それらしい関数が見当たらなかったので雑実装
     await waitForLoading();
-    if (displayedSubmissions != 5) {
-      $1(`div[class="block-timeline"] .dropdown-item[data-limit="${displayedSubmissions}"]`).click();
-      await waitForLoading(true);
-    }
     if (submissionLimit != 7) {
-      if (submissionLimit === "all")
+      if (submissionLimit === "all") {
         $1(`div[class="block-timeline"] .dropdown-item[data-from="-14"][data-filtername="all"]`).click();
-      else if (submissionLimit === "expired")
+      }
+      else if (submissionLimit === "expired") {
         $1(`div[class="block-timeline"] .dropdown-item[data-from="-14"][data-filtername="overdue"]`).click();
-      else
-      $1(`div[class="block-timeline"] .dropdown-item[data-to="${submissionLimit}"]`).click();
+      }
+      else {
+        $1(`div[class="block-timeline"] .dropdown-item[data-to="${submissionLimit}"]`).click();
+      }
       await waitForLoading(true);
     }
   };
   
   /**
+   * 全体の安全装置
+   */
+  const checkSafety = async () => {
+    // - 年度が合わなければならない
+    // - location.href が https://letus.ed.tus.ac.jp/my/ と完全一致する
+    // - LETUS 側のカスタマイズ機能を使用中ではない
+    return await Promise.all([
+        [
+          () => $(`footer > div:contains("(c)2011-${targetLetusVersion} Tokyo University of Science")`).length === 1,
+          "Illegal LETUS version!",
+        ], [
+          () => location.href === "https://letus.ed.tus.ac.jp/my/",
+          "Illegal location.href!",
+        ], [
+          () => $(`button:contains("このページをカスタマイズする")`).length === 1,
+          "LETUS is customize mode!",
+        ]
+      ].map(([f, m]) => new Promise((resolve, reject) => f() ? resolve() : reject(m)))
+    ).then(() => true).catch((m) => log.error("Safety", `Stopped: ${m}`));
+  }
+  
+  /**
    * main
    */
   (async () => {
-    const created = { year: 2021, month: 7 };
-    const version = "1.4";
-    const fullVersion = `v${created.year}${to2DigitString(created.month)}-${version}`;
-    log("Main", `Better LETUS Dashboard ${fullVersion}`);
+    log.info("Main", `Better LETUS Dashboard v${bldVersion} for LETUS ${targetLetusVersion}`);
     
-    // 年度を跨いでいたら終了
-    const now = new Date();
-    if (!(now.getFullYear() === created.year || (now.getFullYear() === created.year + 1 && now.getMonth() < 3))) {
-      log("Main", `Stopped: ${fullVersion} has expired`);
-      return;
-    }
-      
     // LETUS の jQuery の読み込みを待機
     await wait(() => "$" in window);
-    log("Main", "jQuery has been loaded.");
+    log.info("Main", "jQuery has been loaded.");
     
     // 安全装置
-    // * https://letus.ed.tus.ac.jp/my/ と完全一致する場合のみ実行
-    // * LETUS 側のカスタマイズ機能使用中は動作しない
-    if (location.href !== "https://letus.ed.tus.ac.jp/my/") {
-      log("Main", "Stopped: Illegal location.href!");
-      return;
-    }
-    if ($(`button:contains("このページをカスタマイズする")`).length !== 1) {
-      log("Main", "Stopped: LETUS is now customize mode!");
+    if (!(await checkSafety())) {
       return;
     }
     
-    /*
-     * 実行
-     */
+    // 時間割
     if (enableTimetable) {
       try {
-        log("Timetable", "loading...");
+        log.info("Timetable", "Loading...");
         addTimetable();
-        log("Timetable", "successfully loaded.");
+        log.info("Timetable", "Successfully loaded.");
       }
       catch (e) {
-        log("Timetable", "Errored:", e);
+        log.error("Timetable", "Errored:", e);
       }
     }
+    
+    // 「タイムライン」ブロック
     if (enableTimelineBlockModifier) {
       try {
-        log("TimelineBlockModifier", "loading...");
-        modifyTimelineBlock();
-        log("TimelineBlockModifier", "successfully loaded.");
+        log.info("TimelineBlockModifier", "Loading...");
+        await modifyTimelineBlock();
+        log.info("TimelineBlockModifier", "Successfully loaded.");
       }
       catch (e) {
-        log("TimelineBlockModifier", "Errored:", e);
+        log.info("TimelineBlockModifier", "Errored:", e);
       }
     }
   })();
