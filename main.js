@@ -52,6 +52,10 @@
   };
   // 時間割の下部に置くコース ID 一覧 (ショートカット)．集中講義や学科情報など．不要な場合は空に．
   const shortcutCourses = [127161, 11197];
+  // コース名をシンプルにする
+  // 具体的には「離散数学（有限数学２） (9914715)」→「離散数学」のように
+  // 半角全角を問わず最初の括弧でコース名を打ち切り，前後のスペースも消す
+  const simpleCourseName = true;
   
   /*
    * 「タイムラインブロック」関連
@@ -116,9 +120,16 @@
    */
   const addTimetable = () => {
     const courseUrlPrefix = "https://letus.ed.tus.ac.jp/course/view.php?id=";
-    const courseIdToName = new Map(Array.from($("#block-region-side-pre ul a"))
-      .filter(el => el.href.startsWith(courseUrlPrefix))
-      .map(el => [+el.href.slice(courseUrlPrefix.length), el.textContent]));
+    const courseIdToName = (() => {
+      let array = Array.from($("#block-region-side-pre ul a"))
+        .filter(el => el.href.startsWith(courseUrlPrefix))
+        .map(el => [+el.href.slice(courseUrlPrefix.length), el.textContent]);
+      if (simpleCourseName) {
+        array = array.map(([id, name]) => [id, name.replaceAll(/(\(|（).*$/g, "").trim()]);
+      }
+      return new Map(array);
+    })();
+    console.log(courseIdToName)
     
     const getNowTime = () => {
       const nowDate = new Date();
