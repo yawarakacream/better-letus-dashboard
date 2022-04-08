@@ -3,7 +3,7 @@
 // @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     20220227
+// @version     20220408
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -20,12 +20,12 @@
   const periodRange = { first: 0, last: 4 };
   // 表示する曜日
   const daysDisplay = {
-    "monday": true,
-    "tuesday": true,
-    "wednesday": true,
-    "thursday": true,
-    "friday": true,
-    "saturday": false,
+    monday: true,
+    tuesday: true,
+    wednesday: true,
+    thursday: true,
+    friday: true,
+    saturday: false,
   };
   // デフォルトで表示する学期．first: 前期, second: 後期
   const defaultSemester = "first";
@@ -33,24 +33,24 @@
   const timetableCourses = {
     // 前期
     first: {
-      "monday": [null, null, null, null, null, null, null],
-      "tuesday": [null, null, null, null, null, null, null],
-      "wednesday": [null, null, null, null, null, null, null],
-      "thursday": [null, null, null, null, null, null, null],
-      "friday": [null, null, null, null, null, null, null],
-      "saturday": [null, null, null, null, null, null, null],
+      monday: [null, null, null, null, null, null, null],
+      tuesday: [null, null, null, null, null, null, null],
+      wednesday: [null, null, null, null, null, null, null],
+      thursday: [null, null, null, null, null, null, null],
+      friday: [null, null, null, null, null, null, null],
+      saturday: [null, null, null, null, null, null, null],
     },
     // 後期
     second: {
-      "monday": [null, null, null, null, null, null, null],
-      "tuesday": [null, null, null, null, null, null, null],
-      "wednesday": [null, null, null, null, null, null, null],
-      "thursday": [null, null, null, null, null, null, null],
-      "friday": [null, null, null, null, null, null, null],
-      "saturday": [null, null, null, null, null, null, null],
+      monday: [null, null, null, null, null, null, null],
+      tuesday: [null, null, null, null, null, null, null],
+      wednesday: [null, null, null, null, null, null, null],
+      thursday: [null, null, null, null, null, null, null],
+      friday: [null, null, null, null, null, null, null],
+      saturday: [null, null, null, null, null, null, null],
     },
   };
-  // 時間割に載せないコース ID 一覧 (ショートカット)．集中講義や学科情報など．不要な場合は空に．
+  // 時間割の下部に置くコース ID 一覧 (ショートカット)．集中講義や学科情報など．不要な場合は空に．
   const shortcutCourses = [127161, 11197];
   
   /*
@@ -67,7 +67,7 @@
   /**
    * 定数
    */
-  const bldVersion = "20220227";
+  const bldVersion = "20220408";
   const targetLetusVersion = "2022";
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   
@@ -87,7 +87,7 @@
   const mapObject = (object, map) => Object.fromEntries(Object.entries(object).map(([k, v]) => [k, map(k, v)]));
   
   // info, error
-  const log = mapObject({"info": "log", "error": "error"}, (_, level) => {
+  const log = mapObject({info: "log", error: "error"}, (_, level) => {
     return (type, ...args) => console[[level]](`[BLD-${type}]`, ...args);
   });
   
@@ -206,12 +206,12 @@
                 ${days.filter((d) => daysDisplay[d]).map((d) => `
                   <td class="letusbd-table-c-day" data-highlight="${day === d}">
                     ${{
-                      "monday": "月",
-                      "tuesday": "火",
-                      "wednesday": "水",
-                      "thursday": "木",
-                      "friday": "金",
-                      "saturday": "土"
+                      monday: "月",
+                      tuesday: "火",
+                      wednesday: "水",
+                      thursday: "木",
+                      friday: "金",
+                      saturday: "土"
                       }[d]}
                   </td>
                 `).join("")}
