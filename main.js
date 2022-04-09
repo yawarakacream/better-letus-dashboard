@@ -3,7 +3,7 @@
 // @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     20220408
+// @version     20220409
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -63,6 +63,8 @@
    * LETUS の初期値 (= 最小値) の場合，余計なロードは省略される
    */
   const enableTimelineBlockModifier = true;
+  // 表示件数．5, 10, 25 のいずれか
+  const displayedSubmissions = 25;
   // 提出期限．7, 30, 90, 180 のいずれか [日] または "all" または "overdue"
   const submissionLimit = "all";
   
@@ -71,7 +73,7 @@
   /**
    * 定数
    */
-  const bldVersion = "20220408";
+  const bldVersion = "20220409";
   const targetLetusVersion = "2022";
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   
@@ -314,11 +316,15 @@
     const waitForLoading = async (time) => {
       await wait(() => $1(`div[data-region="event-list-loading-placeholder"]`).attr("class") === "hidden");
       if (time) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
     // イベントを発火させず直接変更することもできるはずだが、それらしい関数が見当たらなかったので雑実装
     await waitForLoading();
+    if (displayedSubmissions != 5) {
+      $1(`div[class="block-timeline"] .dropdown-item[data-limit="${displayedSubmissions}"]`).click();
+      await waitForLoading(true);
+    }
     if (submissionLimit != 7) {
       if (submissionLimit === "all") {
         $1(`div[class="block-timeline"] .dropdown-item[data-from="-14"][data-filtername="all"]`).click();
