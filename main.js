@@ -51,7 +51,7 @@
         saturday: [null, null, null, null, null, null, null],
       },
     },
-  }
+  };
   // 時間割の下部に置くコース ID 一覧 (ショートカット)．集中講義や学科情報など
   // 不要な場合は空に．
   const shortcutCourses = [];
@@ -174,7 +174,10 @@
           .letusbd-table-c-period {
             margin: 0;
             padding: 0;
-            width: min(64px, calc(100vw / (${Object.values(timetable[semester].courses).filter(d => d).length}) - 24px));
+            width: min(
+              64px,
+              calc(100vw / max(${Object.values(timetable).map((s) => Object.values(s.courses).filter((d) => d).length).join(",")}) - 24px)
+            );
           }
           .letusbd-table-switcher {
             margin: 0;
