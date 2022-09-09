@@ -89,7 +89,7 @@
     thursday: "木",
     friday: "金",
     saturday: "土",
-  }
+  };
   
   const periods = [
     { begin: [8, 50], end: [10, 20] },
