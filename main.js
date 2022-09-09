@@ -3,7 +3,7 @@
 // @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     20220409
+// @version     20220909
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -16,42 +16,45 @@
    * 時間割関連
    */
   const enableTimetable = true;
-  // 表示する時間の範囲．0-indexed (1 限 => 0, 2 限 => 1, ...)
-  const periodRange = { first: 0, last: 4 };
-  // 表示する曜日
-  const daysDisplay = {
-    monday: true,
-    tuesday: true,
-    wednesday: true,
-    thursday: true,
-    friday: true,
-    saturday: false,
-  };
-  // デフォルトで表示する学期．first: 前期, second: 後期
+  // デフォルトで表示する学期
+  // first: 前期, second: 後期
   const defaultSemester = "first";
-  // 時間割に載せるコース ID 一覧．ID は LETUS の https://letus.ed.tus.ac.jp/course/view.php?id= の後の部分．月 1 〜土 7 まで
-  const timetableCourses = {
+  // 時間割表詳細
+  const timetable = {
     // 前期
     first: {
-      monday: [null, null, null, null, null, null, null],
-      tuesday: [null, null, null, null, null, null, null],
-      wednesday: [null, null, null, null, null, null, null],
-      thursday: [null, null, null, null, null, null, null],
-      friday: [null, null, null, null, null, null, null],
-      saturday: [null, null, null, null, null, null, null],
+      // 表示する時間の範囲
+      // 0-indexed (0: 1 限, 1: 2 限, ...)
+      periodRange: { begin: 0, end: 4 },
+      // 時間割に載せるコース ID の配列
+      // ID は LETUS の https://letus.ed.tus.ac.jp/course/view.php?id= の後の部分
+      // 月 1 〜土 7 まですべて埋め，null は何も表示しない
+      // 曜日の列そのものを表示しないときは配列の代わりに false を入れる
+      courses: {
+        monday: [null, null, null, null, null, null, null],
+        tuesday: [null, null, null, null, null, null, null],
+        wednesday: [null, null, null, null, null, null, null],
+        thursday: [null, null, null, null, null, null, null],
+        friday: [null, null, null, null, null, null, null],
+        saturday: [null, null, null, null, null, null, null],
+      },
     },
     // 後期
     second: {
-      monday: [null, null, null, null, null, null, null],
-      tuesday: [null, null, null, null, null, null, null],
-      wednesday: [null, null, null, null, null, null, null],
-      thursday: [null, null, null, null, null, null, null],
-      friday: [null, null, null, null, null, null, null],
-      saturday: [null, null, null, null, null, null, null],
+      periodRange: { begin: 0, end: 4 },
+      courses: {
+        monday: [null, null, null, null, null, null, null],
+        tuesday: [null, null, null, null, null, null, null],
+        wednesday: [null, null, null, null, null, null, null],
+        thursday: [null, null, null, null, null, null, null],
+        friday: [null, null, null, null, null, null, null],
+        saturday: [null, null, null, null, null, null, null],
+      },
     },
-  };
-  // 時間割の下部に置くコース ID 一覧 (ショートカット)．集中講義や学科情報など．不要な場合は空に．
-  const shortcutCourses = [127161, 11197];
+  }
+  // 時間割の下部に置くコース ID 一覧 (ショートカット)．集中講義や学科情報など
+  // 不要な場合は空に．
+  const shortcutCourses = [];
   // コース名をシンプルにする
   // 具体的には「離散数学（有限数学２） (9914715)」→「離散数学」のように
   // 半角全角を問わず最初の括弧でコース名を打ち切り，前後のスペースも消す
@@ -73,9 +76,20 @@
   /**
    * 定数
    */
-  const bldVersion = "20220409";
+  const bldVersion = "20220909";
   const targetLetusVersion = "2022";
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  
+  const displayNames = {
+    first: "前期",
+    second: "後期",
+    monday: "月",
+    tuesday: "火",
+    wednesday: "水",
+    thursday: "木",
+    friday: "金",
+    saturday: "土",
+  }
   
   const periods = [
     { begin: [8, 50], end: [10, 20] },
@@ -160,7 +174,7 @@
           .letusbd-table-c-period {
             margin: 0;
             padding: 0;
-            width: min(64px, calc(100vw / (${Object.values(daysDisplay).filter(d => d).length}) - 24px));
+            width: min(64px, calc(100vw / (${Object.values(timetable[semester].courses).filter(d => d).length}) - 24px));
           }
           .letusbd-table-switcher {
             margin: 0;
@@ -212,25 +226,18 @@
                 <td class="letusbd-table-c-period">
                   <div class="letusbd-table-switcher">
                     <span id="letusbd-table-switcher-button">
-                      ${{first: "前期", second: "後期"}[semester]}
+                      ${displayNames[semester]}
                     </span>
                   </div>
                 </td>
-                ${days.filter((d) => daysDisplay[d]).map((d) => `
+                ${days.filter((d) => timetable[semester].courses[d]).map((d) => `
                   <td class="letusbd-table-c-day" data-highlight="${day === d}">
-                    ${{
-                      monday: "月",
-                      tuesday: "火",
-                      wednesday: "水",
-                      thursday: "木",
-                      friday: "金",
-                      saturday: "土"
-                      }[d]}
+                    ${displayNames[d]}
                   </td>
                 `).join("")}
               </tr>
-              ${[...new Array(periodRange.last - periodRange.first + 1).keys()]
-                .map((i) => i + periodRange.first).map((p) => `
+              ${[...new Array(timetable[semester].periodRange.end - timetable[semester].periodRange.begin + 1).keys()]
+                .map((i) => i + timetable[semester].periodRange.begin).map((p) => `
                   <tr>
                     <td class="letusbd-table-r-period" data-highlight="${period === p}">
                       <div class="letusbd-table-r-period-content">
@@ -240,11 +247,11 @@
                       </div>
                     </div>
                     </td>
-                      ${days.filter((d) => daysDisplay[d]).map((d) => `
+                      ${days.filter((d) => timetable[semester].courses[d]).map((d) => `
                         <td class="letusbd-table-subject" data-highlight="${(period === p && day === d) && status}">
-                          ${!timetableCourses[semester][d][p] ? `` : `
-                            <a href=${courseUrlPrefix + timetableCourses[semester][d][p]}>
-                              ${courseIdToName.get(timetableCourses[semester][d][p])}
+                          ${!timetable[semester].courses[d][p] ? `` : `
+                            <a href=${courseUrlPrefix + timetable[semester].courses[d][p]}>
+                              ${courseIdToName.get(timetable[semester].courses[d][p])}
                             </a>
                           `}
                         </td>
