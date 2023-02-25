@@ -1,17 +1,17 @@
 // ==UserScript==
-// @name        Better LETUS Dashboard 2022
+// @name        Better LETUS Dashboard 2023
 // @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     20220909
+// @version     20230225
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
 
 (() => {
-  
+
   // 設定 ===========================================================
-  
+
   /*
    * 時間割関連
    */
@@ -59,10 +59,10 @@
   // 具体的には「離散数学（有限数学２） (9914715)」→「離散数学」のように
   // 半角全角を問わず最初の括弧でコース名を打ち切り，前後のスペースも消す
   const simpleCourseName = true;
-  
+
   /*
    * 「タイムラインブロック」関連
-   * 
+   *
    * LETUS の初期値 (= 最小値) の場合，余計なロードは省略される
    */
   const enableTimelineBlockModifier = true;
@@ -70,16 +70,16 @@
   const displayedSubmissions = 25;
   // 提出期限．7, 30, 90, 180 のいずれか [日] または "all" または "overdue"
   const submissionLimit = "all";
-  
+
   // 処理 ===========================================================
-  
+
   /**
    * 定数
    */
-  const bldVersion = "20220909";
-  const targetLetusVersion = "2022";
+  const bldVersion = "20230225";
+  const targetLetusVersion = "2023";
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-  
+
   const displayNames = {
     first: "前期",
     second: "後期",
@@ -90,7 +90,7 @@
     friday: "金",
     saturday: "土",
   };
-  
+
   const periods = [
     { begin: [8, 50], end: [10, 20] },
     { begin: [10, 30], end: [12, 00] },
@@ -100,17 +100,17 @@
     { begin: [18, 00], end: [19, 30] },
     { begin: [19, 40], end: [21, 10] },
   ];
-  
+
   /**
    * Utility
    */
   const mapObject = (object, map) => Object.fromEntries(Object.entries(object).map(([k, v]) => [k, map(k, v)]));
-  
+
   // info, error
   const log = mapObject({info: "log", error: "error"}, (_, level) => {
     return (type, ...args) => console[[level]](`[BLD-${type}]`, ...args);
   });
-  
+
   const wait = (fn) => new Promise((resolve, reject) => {
     const t = setInterval(() => {
       try {
@@ -125,12 +125,12 @@
       }
     }, 10);
   });
-  
+
   const calcMinutes = (h, m) => h * 60 + m;
-  
+
   const to2DigitString = (n) => n < 10 ? `0${n}` : `${n}`;
   const toStringTime = (hours, minutes) => to2DigitString(hours) + ":" + to2DigitString(minutes);
-  
+
   /**
    * 時間割を追加する
    */
@@ -146,7 +146,7 @@
       return new Map(array);
     })();
     console.log(courseIdToName)
-    
+
     const getNowTime = () => {
       const nowDate = new Date();
       const nowMinutes = calcMinutes(nowDate.getHours(), nowDate.getMinutes());
@@ -275,11 +275,11 @@
         </div>
       `;
     }
-    
+
     const root = $("#block-region-content");
     const container = $(`<section class="block_myoverview block card mb-3">`);
     root.prepend(container);
-    
+
     const data = { semester: defaultSemester, time: getNowTime() };
     const render = () => {
       log.info("Timetable", `rendering...`);
@@ -307,7 +307,7 @@
       }
     }, 1000 * 60);
   }
-  
+
   /**
    * タイムラインブロックを操作する
    */
@@ -321,7 +321,7 @@
       log("TimelineBlockModifier", "Timeline-Block is not found.");
       return;
     }
-    
+
     // 適当に待機しないとうまくいかない・・・
     const waitForLoading = async (time) => {
       await wait(() => $1(`div[data-region="event-list-loading-placeholder"]`).attr("class") === "hidden");
@@ -348,7 +348,7 @@
       await waitForLoading(true);
     }
   };
-  
+
   /**
    * 全体の安全装置
    */
@@ -370,22 +370,22 @@
       ].map(([f, m]) => new Promise((resolve, reject) => f() ? resolve() : reject(m)))
     ).then(() => true).catch((m) => log.error("Safety", `Stopped: ${m}`));
   }
-  
+
   /**
    * main
    */
   (async () => {
     log.info("Main", `Better LETUS Dashboard v${bldVersion} for LETUS ${targetLetusVersion}`);
-    
+
     // LETUS の jQuery の読み込みを待機
     await wait(() => "$" in window);
     log.info("Main", "jQuery has been loaded.");
-    
+
     // 安全装置
     if (!(await checkSafety())) {
       return;
     }
-    
+
     // 時間割
     if (enableTimetable) {
       try {
@@ -397,7 +397,7 @@
         log.error("Timetable", "Errored:", e);
       }
     }
-    
+
     // 「タイムライン」ブロック
     if (enableTimelineBlockModifier) {
       try {
@@ -410,5 +410,5 @@
       }
     }
   })();
-  
+
 })();
