@@ -1,9 +1,9 @@
-# Better LETUS Dashboard 2022
+# Better LETUS Dashboard 2023
 
 LETUS のダッシュボードを改良する User Script
 
 開発環境  
-Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.13.0
+Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.13.11
 
 ダッシュボード「HTML ブロック」内 <script> にコピペすることでも使用可能
 
@@ -79,6 +79,10 @@ HTML ブロック の方を推奨
 </details>
 
 ## 更新履歴
+
+### v20230225
+
+- 2023 年度用 初版
 
 ### v20220909
 
