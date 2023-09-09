@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        Better LETUS Dashboard 2023
+// @name        Better LETUS Dashboard 2023 Fall
 // @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     20230225
+// @version     20230909
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -17,12 +17,12 @@
    */
   const enableTimetable = true;
   // デフォルトで表示する学期
-  // first: 前期, second: 後期
-  const defaultSemester = "first";
+  // spring: 前期, fall: 後期
+  const defaultSemester = "fall";
   // 時間割表詳細
   const timetable = {
     // 前期
-    first: {
+    spring: {
       // 表示する時間の範囲
       // 0-indexed (0: 1 限, 1: 2 限, ...)
       periodRange: { begin: 0, end: 4 },
@@ -36,11 +36,11 @@
         wednesday: [null, null, null, null, null, null, null],
         thursday: [null, null, null, null, null, null, null],
         friday: [null, null, null, null, null, null, null],
-        saturday: [null, null, null, null, null, null, null],
+        saturday: false,
       },
     },
     // 後期
-    second: {
+    fall: {
       periodRange: { begin: 0, end: 4 },
       courses: {
         monday: [null, null, null, null, null, null, null],
@@ -48,7 +48,7 @@
         wednesday: [null, null, null, null, null, null, null],
         thursday: [null, null, null, null, null, null, null],
         friday: [null, null, null, null, null, null, null],
-        saturday: [null, null, null, null, null, null, null],
+        saturday: false,
       },
     },
   };
@@ -60,29 +60,18 @@
   // 半角全角を問わず最初の括弧でコース名を打ち切り，前後のスペースも消す
   const simpleCourseName = true;
 
-  /*
-   * 「タイムラインブロック」関連
-   *
-   * LETUS の初期値 (= 最小値) の場合，余計なロードは省略される
-   */
-  const enableTimelineBlockModifier = true;
-  // 表示件数．5, 10, 25 のいずれか
-  const displayedSubmissions = 25;
-  // 提出期限．7, 30, 90, 180 のいずれか [日] または "all" または "overdue"
-  const submissionLimit = "all";
-
   // 処理 ===========================================================
 
   /**
    * 定数
    */
-  const bldVersion = "20230225";
+  const bldVersion = "20230909";
   const targetLetusVersion = "2023";
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
   const displayNames = {
-    first: "前期",
-    second: "後期",
+    spring: "前期",
+    fall: "後期",
     monday: "月",
     tuesday: "火",
     wednesday: "水",
@@ -290,7 +279,7 @@
         </div>
       `);
       document.getElementById("letusbd-table-switcher-button").onclick = () => {
-        data.semester = data.semester === "first" ? "second" : "first";
+        data.semester = data.semester === "spring" ? "fall" : "spring";
         render();
         log.info("Timetable", `semester switched: ${data.semester}`);
       };
@@ -307,47 +296,6 @@
       }
     }, 1000 * 60);
   }
-
-  /**
-   * タイムラインブロックを操作する
-   */
-  const modifyTimelineBlock = async () => {
-    // 安全のため，対応するタイムラインブロックは 1 つだけにする
-    const $1 = (args) => {
-      const ret = $(args);
-      return ret.length === 1 ? $(ret[0]) : undefined;
-    };
-    if (!$1(`div[data-region="event-list-loading-placeholder"]`)) {
-      log("TimelineBlockModifier", "Timeline-Block is not found.");
-      return;
-    }
-
-    // 適当に待機しないとうまくいかない・・・
-    const waitForLoading = async (time) => {
-      await wait(() => $1(`div[data-region="event-list-loading-placeholder"]`).attr("class") === "hidden");
-      if (time) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-    }
-    // イベントを発火させず直接変更することもできるはずだが、それらしい関数が見当たらなかったので雑実装
-    await waitForLoading();
-    if (displayedSubmissions != 5) {
-      $1(`div[class="block-timeline"] .dropdown-item[data-limit="${displayedSubmissions}"]`).click();
-      await waitForLoading(true);
-    }
-    if (submissionLimit != 7) {
-      if (submissionLimit === "all") {
-        $1(`div[class="block-timeline"] .dropdown-item[data-from="-14"][data-filtername="all"]`).click();
-      }
-      else if (submissionLimit === "expired") {
-        $1(`div[class="block-timeline"] .dropdown-item[data-from="-14"][data-filtername="overdue"]`).click();
-      }
-      else {
-        $1(`div[class="block-timeline"] .dropdown-item[data-to="${submissionLimit}"]`).click();
-      }
-      await waitForLoading(true);
-    }
-  };
 
   /**
    * 全体の安全装置
@@ -395,18 +343,6 @@
       }
       catch (e) {
         log.error("Timetable", "Errored:", e);
-      }
-    }
-
-    // 「タイムライン」ブロック
-    if (enableTimelineBlockModifier) {
-      try {
-        log.info("TimelineBlockModifier", "Loading...");
-        await modifyTimelineBlock();
-        log.info("TimelineBlockModifier", "Successfully loaded.");
-      }
-      catch (e) {
-        log.info("TimelineBlockModifier", "Errored:", e);
       }
     }
   })();
