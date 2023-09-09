@@ -1,4 +1,4 @@
-# Better LETUS Dashboard 2023
+# Better LETUS Dashboard 2023 Fall
 
 LETUS のダッシュボードを改良する User Script
 
