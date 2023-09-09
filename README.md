@@ -3,7 +3,7 @@
 LETUS のダッシュボードを改良する User Script
 
 開発環境  
-Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.13.11
+Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.15.0
 
 ダッシュボード「HTML ブロック」内 <script> にコピペすることでも使用可能
 
@@ -16,11 +16,6 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 前期・後期を切り替えられる
 
 下部に時間割に載らない集中講義等のショートカットを配置可能
-
-### 「タイムライン」ブロックの設定を自動的に変更する
-
-デフォルトでは、タイムラインに表示される課題等が 7 日 & 5 個と少ない & 変更しても保存してくれない  
-これらの設定をダッシュボードを開いたときに自動的に変更する
 
 ## 導入方法
 
@@ -79,6 +74,11 @@ HTML ブロック の方を推奨
 </details>
 
 ## 更新履歴
+
+### v20230909
+
+- 前期と後期の名称を first と second から spring と fall に変更
+- タイムラインブロックの設定が保存されるようになったので、同設定の自動変更機能を削除
 
 ### v20230225
 
