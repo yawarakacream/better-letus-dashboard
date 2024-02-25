@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        Better LETUS Dashboard 2023 Fall
+// @name        Better LETUS Dashboard 2024 Spring
 // @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     20230909
+// @version     20240225
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -18,7 +18,7 @@
   const enableTimetable = true;
   // デフォルトで表示する学期
   // spring: 前期, fall: 後期
-  const defaultSemester = "fall";
+  const defaultSemester = "spring";
   // 時間割表詳細
   const timetable = {
     // 前期
@@ -53,7 +53,7 @@
     },
   };
   // 時間割の下部に置くコース ID 一覧 (ショートカット)．集中講義や学科情報など
-  // 不要な場合は空に．
+  // 不要な場合は空に
   const shortcutCourses = [];
   // コース名をシンプルにする
   // 具体的には「離散数学（有限数学２） (9914715)」→「離散数学」のように
@@ -65,8 +65,8 @@
   /**
    * 定数
    */
-  const bldVersion = "20230909";
-  const targetLetusVersion = "2023";
+  const bldVersion = "20240225";
+  const targetLetusVersion = "2024";
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
   const displayNames = {
