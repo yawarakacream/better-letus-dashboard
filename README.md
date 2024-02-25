@@ -1,9 +1,9 @@
-# Better LETUS Dashboard 2023 Fall
+# Better LETUS Dashboard 2024 Spring
 
 LETUS のダッシュボードを改良する User Script
 
 開発環境  
-Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.15.0
+Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.18.0
 
 ダッシュボード「HTML ブロック」内 <script> にコピペすることでも使用可能
 
@@ -75,6 +75,10 @@ HTML ブロック の方を推奨
 
 ## 更新履歴
 
+### v20240225
+
+- 2024 年度用 初版
+
 ### v20230909
 
 - 前期と後期の名称を first と second から spring と fall に変更
@@ -108,7 +112,7 @@ HTML ブロック の方を推奨
 安全のための制限として、以下の条件をすべてクリアしていなければ動作しない：
 
 - 本スクリプトの開発年度と LETUS の年度が合わなければならない
-- location.href が https://letus.ed.tus.ac.jp/my/ と完全一致する
+- `location.href` が https://letus.ed.tus.ac.jp/my/ と完全一致する
 - LETUS 側のカスタマイズ機能を使用中ではない
 
 利用は自己責任です
