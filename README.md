@@ -1,9 +1,9 @@
-# Better LETUS Dashboard 2024 Spring
+# Better LETUS Dashboard
 
 LETUS のダッシュボードを改良する User Script
 
 開発環境  
-Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.18.0
+Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) 2.22.0
 
 ダッシュボード「テキストブロック」内 <script> にコピペすることでも使用可能
 
@@ -20,11 +20,10 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 ## 導入方法
 
 テキストブロック の方を推奨  
-この方法だと携帯版でも動作する
+この方法だとモバイルなどの Violentmonkey がない環境でも動作する
 
-### テキストブロック
 <details>
-  <summary>スポイラー</summary>
+  <summary>テキストブロック</summary>
   
   1. https://letus.ed.tus.ac.jp/my/ にアクセスする
   
@@ -38,23 +37,38 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 
   5. 「テキストブロックタイトル」「コンテンツ」を以下のように書く  
      「コンテンツ」を書く際は、**「\</\>」を押し**、元々書かれている `<p dir="ltr" style="text-align: left;"><br></p>` を消す  
-     <img width="384px" src="https://github.com/yawarakacream/better-letus-dashboard/assets/70136871/a5a44590-99b5-4263-9c9b-888ec2ae5065">  
+     <img width="480px" src="https://github.com/user-attachments/assets/c00c2d85-58ba-4d7c-b1ab-f8a3bd397d5b">
+     ```html
+     <script id="bld-script-main" type="text/plain">
 
-  6. `<script>` と `</script>` の間に <a href="https://github.com/yawarakacream/Better-LETUS-Dashboard/blob/main/main.js">main.js</a> を貼り付ける  
-     <img width="384px" src="https://github.com/yawarakacream/better-letus-dashboard/assets/70136871/93a71a44-c665-402e-bb2a-00a3ba8c9b39">  
+     </script>
 
-  7. 各種設定を自分の時間割等に合わせて変更する
+     <script>
+       const element = document.getElementById("bld-script-main");
+       const script = element.innerHTML.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
+       const newElement = document.createElement("script");
+       newElement.innerHTML = script;
+
+       element.parentElement.appendChild(newElement);
+       element.remove();
+     </script>
+     ```
+
+  7. 2 行目に <a href="https://github.com/yawarakacream/Better-LETUS-Dashboard/blob/main/main.js">main.js</a> を貼り付ける  
+     <img width="384px" src="https://github.com/user-attachments/assets/0f1e3981-0a67-41df-98c9-bb8924fea937">  
+
+  8. 各種設定を自分の時間割等に合わせて変更する
   
-  8. 下部の「変更を保存する」を押す
+  9. 下部の「変更を保存する」を押す
   
-  9. ダッシュボードに戻るので、右上の「このページのカスタマイズを終了する」を押す
+  10. ダッシュボードに戻るので、右上の「このページのカスタマイズを終了する」を押す
   
   ＊ 「カスタマイズを終了する」の後 https://letus.ed.tus.ac.jp/my/index.php にリダイレクトするが、ここでは本スクリプトは動作しないので、自分で https://letus.ed.tus.ac.jp/my/ に移動する
 </details>
 
-### Violentmonkey
 <details>
-  <summary>スポイラー</summary>
+  <summary>Violentmonkey</summary>
   
   1. Chrome に [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) を入れる
   
@@ -75,6 +89,12 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 </details>
 
 ## 更新履歴
+
+### v20240914
+
+- テキストブロック使用時の導入方法を変更
+  - LETUS の仕様変更で、`<` や `>` が `&lt;` や `&gt;` に変換されることがあるようになった
+  - 変換される条件がよくわからないので、補助的なスクリプトを追加（導入方法を参照）
 
 ### v20240225
 
