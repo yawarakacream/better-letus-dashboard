@@ -10,7 +10,7 @@ Chrome [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/j
 <details>
   <summary>更新停止（2024 年秋）</summary>
 
-  作者の LETUS の利用頻度が下がった（現在 M1）のに伴い、2024 年秋で更新を停止します。  
+  作者の LETUS の利用頻度が下がった（現在 M1）のに伴い、2024 年秋までで更新を停止します。  
   ご利用ありがとうございました。
 
   安全装置を削除すれば 2025 年以降も使えるかもしれません。  
