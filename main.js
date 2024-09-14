@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        Better LETUS Dashboard 2024 Spring
+// @name        Better LETUS Dashboard
 // @namespace   https://github.com/yawarakacream/better-letus-dashboard
 // @match       https://letus.ed.tus.ac.jp/my/
 // @grant       none
-// @version     20240225
+// @version     20240914
 // @author      ywrs
 // @description LETUS のダッシュボードを改良する
 // ==/UserScript==
@@ -18,7 +18,7 @@
   const enableTimetable = true;
   // デフォルトで表示する学期
   // spring: 前期, fall: 後期
-  const defaultSemester = "spring";
+  const defaultSemester = "fall";
   // 時間割表詳細
   const timetable = {
     // 前期
@@ -65,7 +65,7 @@
   /**
    * 定数
    */
-  const bldVersion = "20240225";
+  const bldVersion = "20240914";
   const targetLetusVersion = "2024";
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
@@ -346,5 +346,4 @@
       }
     }
   })();
-
 })();
